@@ -1,7 +1,5 @@
 package com.inventory.inventoryProject.model;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonRootName;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
@@ -12,9 +10,6 @@ public class InventoryRequest implements Serializable {
 
     @JsonProperty("quantity")
     private int quantity;
-
-    @JsonProperty("price")
-    private double price;
 
     public String getProductId() {
         return productId;
@@ -30,14 +25,6 @@ public class InventoryRequest implements Serializable {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
     }
 }
 

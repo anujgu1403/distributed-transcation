@@ -1,67 +1,53 @@
 package com.inventory.inventoryProject.service;
 
-
 import com.inventory.inventoryProject.domain.Inventory;
-import com.inventory.inventoryProject.model.InventoryResponse;
+import com.inventory.inventoryProject.model.InventoryRequest;
 import com.inventory.inventoryProject.model.Response;
 import com.inventory.inventoryProject.repository.InventoryRepository;
-import com.inventory.inventoryProject.domain.InventoryServiceConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
-public class InventoryServiceImpl implements  InventoryService {
+public class InventoryServiceImpl implements InventoryService {
+	private static final Logger logger = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
-    @Autowired
-InventoryRepository inventoryRepository;
+	@Autowired
+	InventoryRepository inventoryRepository;
 
-    Response response=new Response();
+	@Override
+	public Response updateInventory(InventoryRequest inventoryRequest) {
 
-    InventoryResponse inventoryResponse=new InventoryResponse();
+		logger.info("Request: "+inventoryRequest);
+		Response response = new Response();
+		try {
+			if (null != inventoryRequest) {
+				if (!inventoryRequest.getProductId().isEmpty()) {
+					// find the available inventory of given product.
+					Inventory inventoryData = inventoryRepository
+							.findQuantityByProductId(inventoryRequest.getProductId());
+					logger.info("inventoryData: "+inventoryData);
+					if (inventoryData.getQuantity() >= inventoryRequest.getQuantity()) {
+						int remainingQty = inventoryData.getQuantity() - inventoryRequest.getQuantity();
 
-    @Override
-    public InventoryResponse findQuantityByProductId(String productId) {
-
-        Inventory quantity = inventoryRepository.findQuantityByProductId(productId);
-        inventoryResponse.setTotalquantity(quantity);
-
-
-        return inventoryResponse;
-    }
-
-    @Override
-    public Response updateInventory(String productId, int quantity) {
-
-
-        System.out.println(" productId deatils "+productId);
-
-        System.out.println(" quantity deatils "+quantity);
-        String totalInventory=null;
-        try {
-            Inventory inventory = inventoryRepository.findQuantityByProductId(productId);
-            System.out.println("inventory deatils from db "+inventory);
-           /* if(inventory!=null) {
-                totalInventory = inventory.toString();
-            }
-            Integer total = Integer.valueOf(totalInventory);
-            Integer newquantity = total - quantity;
-
-            System.out.println("newquantity deatils "+newquantity);
-            response.setProductId(productId);
-            response.setQuantity(newquantity);
-            response.setMessage(InventoryServiceConstants.UPDATED_SUCCESFULLY);
-            //response = inventoryRepository.save(response);*/
-        }
-        catch (Exception ex) {
-            System.out.println("exception orrcured"+ex.getMessage());
-            response.setErrorMessage(InventoryServiceConstants.ERROR_RESPONSE);
-
-        }
-
-        return response;
-    }
+						// update the qty in database
+						inventoryData.setQuantity(remainingQty);
+						inventoryRepository.save(inventoryData);
+						response.setCode("201");
+						response.setMessage("Successfully updated quantity.");
+					} else {
+						response.setCode("400");
+						response.setMessage("Product is not having sufficient quantity.");
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error while updating quantity: ", e.getCause());
+			response.setCode("500");
+			response.setMessage("Error while updating quantity.");
+		}
+		logger.info("Response: "+response);
+		return response;
+	}
 }
