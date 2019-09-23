@@ -23,7 +23,7 @@ public class InventoryController {
 		logger.info("InventoryRequest: " + inventoryRequest);
 		ResponseEntity<Response> responseEntity = null;
 		Response resp = inventoryService.updateInventory(inventoryRequest);
-
+		logger.info("Response: " + resp);
 		if (resp.getCode().equals("201")) {
 			responseEntity = new ResponseEntity<Response>(resp, HttpStatus.CREATED);
 		}
