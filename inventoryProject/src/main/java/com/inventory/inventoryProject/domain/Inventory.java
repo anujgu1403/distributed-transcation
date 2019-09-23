@@ -11,13 +11,11 @@ public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    @Column(name="productId")
     private String productId;
 
-    @Column(name="price")
-    private double price;
-
     @Column(name="quantity")
-
     private int quantity;
 
 }
