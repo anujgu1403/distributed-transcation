@@ -29,4 +29,8 @@ public class OrderServiceConstants {
 	public static final String ORDER_CREATED_EVENT="OrderCreated";
 	public static final String INVENTORY_UPDATED="InventoryUpdated";
 	public static final String INVENTORY_UPDATION_FAILED="InventoryUpdationFailed";
+	public static final String PAYMENT_UPDATED="PaymentUpdated";
+	public static final String PAYMENT_UPDATED_FAILED="PaymentUpdatedFailed";
+	public static final String ORDER_CONFIM="OrderConfirmed";
+	public static final String ORDER_CONFIM_FAILED="OrderConfirmedFailed";
 }

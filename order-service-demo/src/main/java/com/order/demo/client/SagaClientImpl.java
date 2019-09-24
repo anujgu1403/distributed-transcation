@@ -9,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 import com.order.demo.controller.OrderdemoController;
 import com.order.demo.model.ClientResponse;
 import com.order.demo.model.InventoryRequest;
+import com.order.demo.model.PaymentRequest;
 
 @Service
 public class SagaClientImpl implements SagaClient {
@@ -21,11 +22,21 @@ public class SagaClientImpl implements SagaClient {
 
 	@Value("${inventory.service.url}")
 	String inventoryUrl;
+	
+	@Value("${payment.service.url}")
+	String paymentUrl;
 
 	@Override
 	public ClientResponse invokeInventoryService(InventoryRequest inventoryRequest) {
 		logger.info("invokeInventoryService:: InventoryRequest: ", inventoryRequest);
 		return getRestTemplate().postForObject(inventoryUrl, inventoryRequest, ClientResponse.class);
 	}
+	
+	@Override
+	public ClientResponse invokePaymentService(PaymentRequest paymentRequest) {
+		logger.info("invokePaymmentService:: PaymentRequest: ", paymentRequest);
+		return getRestTemplate().postForObject(paymentUrl, paymentRequest, ClientResponse.class);
+	}
+
 
 }
