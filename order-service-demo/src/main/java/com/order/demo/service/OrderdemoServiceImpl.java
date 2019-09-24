@@ -8,7 +8,7 @@ import com.order.demo.domain.Ordersdemo;
 import com.order.demo.model.OrderRequest;
 import com.order.demo.model.Response;
 import com.order.demo.repository.OrdersdemoRepository;
-import com.order.demo.util.CartServiceConstants;
+import com.order.demo.util.OrderServiceConstants;
 
 /**
  * @author Anuj Kumar
@@ -54,7 +54,7 @@ public class OrderdemoServiceImpl implements OrderdemoService {
 			}
 
 		} catch (Exception ex) {
-			resp.setErrorMessage(CartServiceConstants.ERROR_RESPONSE);
+			resp.setErrorMessage(OrderServiceConstants.ERROR_RESPONSE);
 			logger.debug("Error occured: ", ex.getMessage());
 		}
 		logger.info("End createOrder method: ", OrderdemoServiceImpl.class.getName());

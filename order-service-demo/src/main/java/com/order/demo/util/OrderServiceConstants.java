@@ -5,7 +5,7 @@ package com.order.demo.util;
  * 
  *  This is keep all the constants
  */
-public class CartServiceConstants {
+public class OrderServiceConstants {
 	
 	public static final int TAX_RATE = 7;
 	public static final double SHIPPING_CHARGE = 10.00;
@@ -26,4 +26,7 @@ public class CartServiceConstants {
 	public static final String ORDERS_LIST = "Listed are orders for customer";
 	public static final String ORDER_NOT_FOUND = "No matching order found.";
 	public static final String TEST_COMMIT= "TEST_COMMIT";
+	public static final String ORDER_CREATED_EVENT="OrderCreated";
+	public static final String INVENTORY_UPDATED="InventoryUpdated";
+	public static final String INVENTORY_UPDATION_FAILED="InventoryUpdationFailed";
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.order.demo.model.OrderRequest;
 import com.order.demo.model.Response;
+import com.order.demo.saga.CreateOrderSaga;
 import com.order.demo.service.OrderdemoService; 
 
 /**
@@ -28,6 +29,9 @@ public class OrderdemoController {
 
 	@Autowired
 	OrderdemoService orderdemoService;
+	
+	@Autowired
+	CreateOrderSaga createOrderSaga;
 
 	/**
 	 * This end point is used to add items into cart
@@ -40,7 +44,8 @@ public class OrderdemoController {
 		logger.info("Start addItemToCart method: ", OrderdemoController.class.getName());
 		logger.debug("OrderRequest: " + orderRequest);
 
-		Response resp = orderdemoService.createOrder(orderRequest);
+		//Response resp = orderdemoService.createOrder(orderRequest);
+		Response resp = createOrderSaga.orderCreated(orderRequest);
 		logger.debug("Response: " + resp);
 		logger.info("End addItemToCart method: ", OrderdemoController.class.getName());
 		return new ResponseEntity<Response>(resp, HttpStatus.CREATED);
