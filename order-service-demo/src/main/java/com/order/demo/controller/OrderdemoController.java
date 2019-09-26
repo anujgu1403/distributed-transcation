@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.order.demo.listener.CustomEvent;
 import com.order.demo.model.OrderRequest;
 import com.order.demo.model.Response;
 import com.order.demo.saga.CreateOrderSaga;
-import com.order.demo.service.OrderdemoService; 
+import com.order.demo.service.OrderdemoService;
+import com.order.demo.util.OrderServiceConstants; 
 
 /**
  * @author Anuj Kumar
@@ -45,7 +48,7 @@ public class OrderdemoController {
 		logger.debug("OrderRequest: " + orderRequest);
 
 		//Response resp = orderdemoService.createOrder(orderRequest);
-		Response resp = createOrderSaga.orderCreated(orderRequest);
+		Response resp = createOrderSaga.orderCreated(new CustomEvent(this, orderRequest.getOrderId(), orderRequest.getProductId(), orderRequest.getQuantity(), orderRequest.getTotalPrice(), OrderServiceConstants.CREATE_ORDER_EVENT, null));
 		logger.debug("Response: " + resp);
 		logger.info("End addItemToCart method: ", OrderdemoController.class.getName());
 		return new ResponseEntity<Response>(resp, HttpStatus.CREATED);

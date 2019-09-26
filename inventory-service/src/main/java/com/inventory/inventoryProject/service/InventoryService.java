@@ -6,4 +6,6 @@ import com.inventory.inventoryProject.model.InventoryRequest;
 public interface InventoryService {
 
     Response updateInventory(InventoryRequest inventoryRequest);
+    
+    Response revertInventory(InventoryRequest inventoryRequest);
 }

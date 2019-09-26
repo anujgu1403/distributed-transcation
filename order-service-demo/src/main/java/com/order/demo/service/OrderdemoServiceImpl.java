@@ -62,33 +62,65 @@ public class OrderdemoServiceImpl implements OrderdemoService {
 	}
 
 	/**
-	 * This method is used update the quantity of order item
+	 * This method is used to update item in db
 	 * 
-	 * @param orderItemId
-	 * @param quantity
+	 * @param orderRequest
 	 * @return Response
-	 *//*
-		 * @Override public Response updateOrder(int orderItemId, int quantity) {
-		 * logger.info("Start updateOrder method: ", CartServiceImpl.class.getName());
-		 * Response resp = new Response(); Orders order = new Orders(); try { // Find
-		 * order item and update the quantity OrderItems orderItem =
-		 * orderItemsRepository.findOrderItemsId(orderItemId); double unitPrice =
-		 * orderItem.getPrice() / orderItem.getQuantity();
-		 * orderItem.setQuantity(quantity); orderItem.setPrice(unitPrice * quantity);
-		 * orderItem = orderItemsRepository.save(orderItem);
-		 * 
-		 * // To prepare response with order & order items order =
-		 * ordersRepository.findOrderByOrdersId(orderItem.getOrders().getId());
-		 * List<OrderItems> ordItemList =
-		 * orderItemsRepository.findOrderItemsByOrdersId(order);
-		 * 
-		 * // To re-calculate order & update the DB order =
-		 * ordersRepository.save(CartServiceUtil.recalculateOrder(order, ordItemList));
-		 * resp = CartServiceUtil.prepareFinalOrderResponse(order, ordItemList);
-		 * resp.setMessage(CartServiceConstants.ORDERITEM_UPDATED); } catch (Exception
-		 * ex) { resp.setErrorMessage(CartServiceConstants.ERROR_RESPONSE);
-		 * logger.debug("Error occured: ", ex.getMessage()); }
-		 * logger.info("End updateOrder method: ", CartServiceImpl.class.getName());
-		 * return resp; }
-		 */
+	 */
+	@Override
+	public Response updateOrder(OrderRequest orderRequest) {
+		logger.info("Start updateOrder method: ", OrderdemoServiceImpl.class.getName());
+		Response resp = new Response();
+		Ordersdemo order = new Ordersdemo();
+		try {
+			// create new order for guest user
+			order.setId(orderRequest.getOrderId());
+			order.setProductId(orderRequest.getProductId());
+			order.setQuantity(orderRequest.getQuantity());
+			order.setStatus("S");
+			order.setTotalPrice(orderRequest.getTotalPrice());
+			order = ordersRepository.save(order);
+			
+			if(order.getId()!=0) {
+				resp.setOrderId(order.getId());
+				resp.setProductId(order.getProductId());
+				resp.setTotalPrice(order.getTotalPrice());
+				resp.setTimePlaced(order.getTimePlaced());
+				resp.setTimeUpdate(order.getTimeUpdate());
+				resp.setStatus(order.getStatus());
+				resp.setQuantity(order.getQuantity());
+			}
+
+		} catch (Exception ex) {
+			resp.setErrorMessage(OrderServiceConstants.ERROR_RESPONSE);
+			logger.debug("Error occured: ", ex.getMessage());
+		}
+		logger.info("End updateOrder method: ", OrderdemoServiceImpl.class.getName());
+		return resp;
+	}
+	
+	/**
+	 * This method is used to delete the order from db
+	 * 
+	 * @param orderRequest
+	 * @return Response
+	 */
+	@Override
+	public Response deleteOrder(int orderId) {
+		logger.info("Start deleteOrder method: ", OrderdemoServiceImpl.class.getName());
+		Response resp = new Response();
+		try {
+			// create new order for guest user					
+			if(orderId!=0) {
+				ordersRepository.deleteById(orderId);
+				resp.setMessage(OrderServiceConstants.ORDER_TRANSACTION_DELETED);
+			}
+
+		} catch (Exception ex) {
+			resp.setErrorMessage(OrderServiceConstants.ERROR_RESPONSE);
+			logger.debug("Error occured: ", ex.getMessage());
+		}
+		logger.info("End deleteOrder method: ", OrderdemoServiceImpl.class.getName());
+		return resp;
+	}
 }

@@ -16,5 +16,5 @@ public interface OrdersdemoRepository extends CrudRepository<Ordersdemo, Integer
 
 	@Query("from Ordersdemo o where o.id = :id")
 	Ordersdemo findOrderByOrdersId(@Param("id") int id);
-	
+		
 }

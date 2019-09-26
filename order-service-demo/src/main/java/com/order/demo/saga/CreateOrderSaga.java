@@ -21,33 +21,49 @@ import com.order.demo.util.OrderServiceConstants;
 @Component
 public class CreateOrderSaga {
 	private static final Logger logger = LoggerFactory.getLogger(OrderdemoController.class);
-	
+
 	@Autowired
 	OrderdemoService orderdemoService;
-	
+
 	@Autowired
 	SagaClient sagaClient;
-	
-	@Autowired
-	ApplicationEventPublisher applicationEventPublisher; 
-	
-	public Response orderCreated(OrderRequest orderRequest) {
-		logger.debug("OrderRequest: " + orderRequest);
-		Response resp = orderdemoService.createOrder(orderRequest);
-		if(null==resp.getErrorMessage() || resp.getErrorMessage().isEmpty()) {
-			//publish event for inventory update
-			applicationEventPublisher.publishEvent(new CustomEvent(this, resp.getOrderId(), resp.getProductId(), resp.getQuantity(), resp.getTotalPrice(), OrderServiceConstants.ORDER_CREATED_EVENT));
-			
-			
-		}else {
-			// Abort the tranaction
-		}
 
+	@Autowired
+	ApplicationEventPublisher applicationEventPublisher;
+
+	@EventListener(CustomEvent.class)
+	public Response orderCreated(CustomEvent customEvent) {
+		logger.debug("customEvent: " + customEvent);
+		Response resp = new Response();
+		if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.CREATE_ORDER_EVENT)) {
+			OrderRequest orderRequest = new OrderRequest();
+			orderRequest.setOrderId(customEvent.getOrderId());
+			orderRequest.setProductId(customEvent.getProductId());
+			orderRequest.setQuantity(customEvent.getQuantity());
+			orderRequest.setTotalPrice(customEvent.getAmount());
+			resp = orderdemoService.createOrder(orderRequest);
+			if (null == resp.getErrorMessage() || resp.getErrorMessage().isEmpty()) {
+				// publish event for inventory update
+				applicationEventPublisher.publishEvent(new CustomEvent(this, resp.getOrderId(), resp.getProductId(),
+						resp.getQuantity(), resp.getTotalPrice(), OrderServiceConstants.ORDER_CREATED_EVENT, null));
+			} 
+		} else {
+			// Send the final response for transaction completion.
+			if (null != customEvent && customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CONFIMED)) {
+				if (null != customEvent.getResponse()) {
+					resp = customEvent.getResponse();
+				}
+			} else if (null != customEvent
+					&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_TRANSACTION_REVERTED)) {
+				if (null != customEvent.getResponse()) {
+					resp = customEvent.getResponse();
+				}
+			}
+		}
 		logger.debug("Response: " + resp);
 		return resp;
 	}
-	
-	
+
 	@EventListener(CustomEvent.class)
 	public void onOrderCreate(CustomEvent customEvent) {
 		if (null != customEvent && customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CREATED_EVENT)) {
@@ -59,17 +75,17 @@ public class CreateOrderSaga {
 				// Raise event to update payment
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.INVENTORY_UPDATED));
+						OrderServiceConstants.INVENTORY_UPDATED, null));
 			} else {
 				// raise event to rollback order tansaction
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.INVENTORY_UPDATION_FAILED));
+						OrderServiceConstants.INVENTORY_UPDATION_FAILED, null));
 			}
 		}
 
 	}
-	
+
 	@EventListener(CustomEvent.class)
 	public void onInventoryUpdate(CustomEvent customEvent) {
 		if (null != customEvent && customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.INVENTORY_UPDATED)) {
@@ -81,32 +97,90 @@ public class CreateOrderSaga {
 				// Raise event to update payment
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.PAYMENT_UPDATED));
+						OrderServiceConstants.PAYMENT_UPDATED, null));
 			} else {
 				// raise event to rollback order tansaction
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.PAYMENT_UPDATED_FAILED));
+						OrderServiceConstants.PAYMENT_UPDATION_FAILED, null));
 			}
 		}
 	}
-	
+
 	@EventListener(CustomEvent.class)
 	public void onPaymentUpdated(CustomEvent customEvent) {
 		if (null != customEvent && customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.PAYMENT_UPDATED)) {
-			//Update final order status as placed 'S'
-			
-			
-			if (clientResponse.getCode().equals("201")) {
-				// Raise event to update payment
+			// Update final order status as placed 'S'
+			OrderRequest orderRequest = new OrderRequest();
+			orderRequest.setOrderId(customEvent.getOrderId());
+			orderRequest.setProductId(customEvent.getProductId());
+			orderRequest.setQuantity(customEvent.getQuantity());
+			orderRequest.setTotalPrice(customEvent.getAmount());
+			Response resp = orderdemoService.updateOrder(orderRequest);
+
+			if (null == resp.getErrorMessage() || resp.getErrorMessage().isEmpty()) {
+				// Order successfully updated and send the final response
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.ORDER_CONFIM));
+						OrderServiceConstants.ORDER_CONFIMED, resp));
 			} else {
-				// raise event to rollback order tansaction
+				// raise event to roll back order transaction
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-						OrderServiceConstants.PAYMENT_UPDATED_FAILED));
+						OrderServiceConstants.ORDER_CONFIMATION_FAILED, null));
+			}
+		}
+	}
+
+	@EventListener(CustomEvent.class)
+	public void onTransactionFailed(CustomEvent customEvent) {
+		if (null != customEvent
+				&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.INVENTORY_UPDATION_FAILED)) {
+			// Revert the inventory which was updated earlier
+			InventoryRequest inventoryRequest = new InventoryRequest();
+			inventoryRequest.setProductId(customEvent.getProductId());
+			inventoryRequest.setQuantity(customEvent.getQuantity());
+			ClientResponse clientResponse = sagaClient.invokeInventoryRevertService(inventoryRequest);
+
+			if (null == clientResponse.getCode() && clientResponse.getCode().equals("201")) {
+				// Inventory has been reverted successfully and delete the order
+				Response resp = orderdemoService.deleteOrder(customEvent.getOrderId());
+				if (!resp.getMessage().isEmpty()) {
+					// raise event to return response for successful transaction rolledback
+					applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
+							customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
+							OrderServiceConstants.ORDER_TRANSACTION_REVERTED, null));
+				}
+
+			}
+		} else if (null != customEvent
+				&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.PAYMENT_UPDATION_FAILED)) {
+			// Revert the payment transaction which was updated earlier
+
+			PaymentRequest paymentRequest = new PaymentRequest();
+			paymentRequest.setOrderId(customEvent.getOrderId());
+			paymentRequest.setAmount(customEvent.getAmount());
+			ClientResponse clientResponse = sagaClient.invokePaymentRevertService(paymentRequest);
+
+			if (clientResponse.getCode().equals("201")) {
+				// Revert the inventory which was updated earlier
+				InventoryRequest inventoryRequest = new InventoryRequest();
+				inventoryRequest.setProductId(customEvent.getProductId());
+				inventoryRequest.setQuantity(customEvent.getQuantity());
+				clientResponse = sagaClient.invokeInventoryRevertService(inventoryRequest);
+
+				if (null == clientResponse.getCode() && clientResponse.getCode().equals("201")) {
+					// Inventory has been reverted successfully and delete the order
+					Response resp = orderdemoService.deleteOrder(customEvent.getOrderId());
+					if (!resp.getMessage().isEmpty()) {
+						// raise event to return response for successful transaction rolledback
+						applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
+								customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
+								OrderServiceConstants.ORDER_TRANSACTION_REVERTED, null));
+					}
+
+				}
+
 			}
 		}
 	}

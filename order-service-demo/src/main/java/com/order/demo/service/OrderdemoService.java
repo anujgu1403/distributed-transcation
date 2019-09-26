@@ -20,6 +20,22 @@ public interface OrderdemoService {
 	 */
 	Response createOrder(OrderRequest orderRequest);
 	
+	/**
+	 * This method is used to add items into cart
+	 * 
+	 * @param orderRequest
+	 * @return Response
+	 */
+	Response updateOrder(OrderRequest orderRequest);
+	
+	/**
+	 * This delete the order
+	 * 
+	 * @param orderRequest
+	 * @return Response
+	 */
+	Response deleteOrder(int orderId);
+	
 	
 	//Response findByOrdersId(int orderId);
 }

@@ -26,11 +26,15 @@ public class OrderServiceConstants {
 	public static final String ORDERS_LIST = "Listed are orders for customer";
 	public static final String ORDER_NOT_FOUND = "No matching order found.";
 	public static final String TEST_COMMIT= "TEST_COMMIT";
+	public static final String CREATE_ORDER_EVENT="CreateOrderEvent";
 	public static final String ORDER_CREATED_EVENT="OrderCreated";
 	public static final String INVENTORY_UPDATED="InventoryUpdated";
 	public static final String INVENTORY_UPDATION_FAILED="InventoryUpdationFailed";
 	public static final String PAYMENT_UPDATED="PaymentUpdated";
-	public static final String PAYMENT_UPDATED_FAILED="PaymentUpdatedFailed";
-	public static final String ORDER_CONFIM="OrderConfirmed";
-	public static final String ORDER_CONFIM_FAILED="OrderConfirmedFailed";
+	public static final String PAYMENT_UPDATION_FAILED="PaymentUpdationFailed";
+	public static final String ORDER_CONFIMED="OrderConfirmed";
+	public static final String ORDER_CONFIMATION_FAILED="OrderConfirmationFailed";
+	public static final String ORDER_TRANSACTION_DELETED="Order has been deleted.";
+	public static final String ORDER_TRANSACTION_REVERTED="OrderTransactionReverted";
+	
 }

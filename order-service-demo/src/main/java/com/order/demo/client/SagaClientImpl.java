@@ -25,6 +25,12 @@ public class SagaClientImpl implements SagaClient {
 	
 	@Value("${payment.service.url}")
 	String paymentUrl;
+	
+	@Value("${inventory.service.revert.url}")
+	String inventoryRevertServiceUrl;
+	
+	@Value("${payment.service.revert.url}")
+	String paymentRevertServiceUrl;
 
 	@Override
 	public ClientResponse invokeInventoryService(InventoryRequest inventoryRequest) {
@@ -33,10 +39,21 @@ public class SagaClientImpl implements SagaClient {
 	}
 	
 	@Override
+	public ClientResponse invokeInventoryRevertService(InventoryRequest inventoryRequest) {
+		logger.info("invokeInventoryRevertService:: InventoryRequest: ", inventoryRequest);
+		return getRestTemplate().postForObject(inventoryRevertServiceUrl, inventoryRequest, ClientResponse.class);
+	}
+	
+	@Override
 	public ClientResponse invokePaymentService(PaymentRequest paymentRequest) {
 		logger.info("invokePaymmentService:: PaymentRequest: ", paymentRequest);
 		return getRestTemplate().postForObject(paymentUrl, paymentRequest, ClientResponse.class);
 	}
 
+	@Override
+	public ClientResponse invokePaymentRevertService(PaymentRequest paymentRequest) {
+		logger.info("invokePaymmentService:: PaymentRequest: ", paymentRequest);
+		return getRestTemplate().postForObject(paymentRevertServiceUrl, paymentRequest, ClientResponse.class);
+	}
 
 }

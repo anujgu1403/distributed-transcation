@@ -8,5 +8,9 @@ public interface SagaClient {
 	
 	public ClientResponse invokeInventoryService(InventoryRequest inventoryRequest);
 	
+	public ClientResponse invokeInventoryRevertService(InventoryRequest inventoryRequest);
+	
 	public ClientResponse invokePaymentService(PaymentRequest paymentRequest);
+	
+	public ClientResponse invokePaymentRevertService(PaymentRequest paymentRequest);
 }

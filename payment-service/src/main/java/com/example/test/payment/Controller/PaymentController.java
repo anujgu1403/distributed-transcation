@@ -39,4 +39,22 @@ public class PaymentController {
 		}
 		return responseEntity;
     }
+    
+    @PostMapping(value = "/revertPayment")
+    public ResponseEntity<Response> revertPaymentTransaction(@RequestBody PaymentRequest paymentRequest){
+    	ResponseEntity<Response> responseEntity=null;
+    	logger.info("PaymentRequest: "+paymentRequest);
+        Response resp=paymentServiceImpl.revertPaymentTransaction(paymentRequest);
+        logger.info("Response: " + resp);
+		if (resp.getCode().equals("201")) {
+			responseEntity = new ResponseEntity<Response>(resp, HttpStatus.CREATED);
+		}
+		if (resp.getCode().equals("400")) {
+			responseEntity = new ResponseEntity<Response>(resp, HttpStatus.BAD_REQUEST);
+		}
+		if (resp.getCode().equals("500")) {
+			responseEntity = new ResponseEntity<Response>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return responseEntity;
+    }
 }

@@ -50,4 +50,41 @@ public class InventoryServiceImpl implements InventoryService {
 		logger.info("Response: "+response);
 		return response;
 	}
+	
+	@Override
+	public Response revertInventory(InventoryRequest inventoryRequest) {
+
+		logger.info("Request: "+inventoryRequest);
+		Response response = new Response();
+		try {
+			if (null != inventoryRequest) {
+				if (!inventoryRequest.getProductId().isEmpty()) {
+					// find the available inventory of given product.
+					Inventory inventoryData = inventoryRepository
+							.findQuantityByProductId(inventoryRequest.getProductId());
+					logger.info("inventoryData: "+inventoryData);
+		
+					if (inventoryRequest.getQuantity() >0) {
+						int totalQty = inventoryData.getQuantity() + inventoryRequest.getQuantity();
+
+						// update the qty in database
+						inventoryData.setQuantity(totalQty);
+						inventoryRepository.save(inventoryData);
+						response.setCode("201");
+						response.setMessage("Successfully reverted quantity.");
+					} else {
+						response.setCode("400");
+						response.setMessage("Product is not having sufficient quantity.");
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error while reverting quantity: ", e.getCause());
+			response.setCode("500");
+			response.setMessage("Error while reverting quantity.");
+		}
+		logger.info("Response: "+response);
+		return response;
+	}
+	
 }

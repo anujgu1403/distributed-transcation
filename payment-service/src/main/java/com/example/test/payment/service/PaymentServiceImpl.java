@@ -40,4 +40,26 @@ public class PaymentServiceImpl {
 		logger.info("Response: " + response);
 		return response;
 	}
+	
+	public Response revertPaymentTransaction(PaymentRequest paymentRequest) {
+		Response response = new Response();
+		try {
+			if (!paymentRequest.getOrderId().isEmpty()) {
+				int result = paymentDetailsRepository.deleteByOrderId(paymentRequest.getOrderId());
+				if (result==1) {
+					response.setCode("201");
+					response.setMessage("Successfully reverted payment transaction.");
+				}
+			} else {
+				response.setCode("400");
+				response.setMessage("Bad request.");
+			}
+		} catch (Exception e) {
+			logger.error("Error while reverting payment transaction: ", e.getCause());
+			response.setCode("500");
+			response.setMessage("Error while reverting payment transaction.");
+		}
+		logger.info("Response: " + response);
+		return response;
+	}
 }

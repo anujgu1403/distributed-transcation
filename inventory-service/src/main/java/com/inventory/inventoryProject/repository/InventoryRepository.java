@@ -11,4 +11,10 @@ public interface InventoryRepository extends CrudRepository<Inventory, Integer> 
 
     @Query("from Inventory i where i.productId = :productId")
     Inventory findQuantityByProductId(@Param("productId") String productId);
+    
+	/*
+	 * @Query("update Inventory i set i.quantity = : quantity where i.productId = :productId"
+	 * ) int updateInventoryByProductId(@Param("quantity") int
+	 * quantity, @Param("productId") String productId);
+	 */
 }
