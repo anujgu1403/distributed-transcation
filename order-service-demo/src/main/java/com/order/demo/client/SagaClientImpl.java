@@ -22,38 +22,72 @@ public class SagaClientImpl implements SagaClient {
 
 	@Value("${inventory.service.url}")
 	String inventoryUrl;
-	
+
 	@Value("${payment.service.url}")
 	String paymentUrl;
-	
+
 	@Value("${inventory.service.revert.url}")
 	String inventoryRevertServiceUrl;
-	
+
 	@Value("${payment.service.revert.url}")
 	String paymentRevertServiceUrl;
 
 	@Override
 	public ClientResponse invokeInventoryService(InventoryRequest inventoryRequest) {
 		logger.info("invokeInventoryService:: InventoryRequest: ", inventoryRequest);
-		return getRestTemplate().postForObject(inventoryUrl, inventoryRequest, ClientResponse.class);
+		ClientResponse clientResponse = new ClientResponse();
+		try {
+			clientResponse = getRestTemplate().postForObject(inventoryUrl, inventoryRequest, ClientResponse.class);
+		} catch (Exception e) {
+			logger.error("Error while calling inventory update service: ", e.getCause());
+			clientResponse.setCode("500");
+			clientResponse.setMessage("Error while calling inventory update service.");
+		}
+		return clientResponse;
 	}
-	
+
 	@Override
 	public ClientResponse invokeInventoryRevertService(InventoryRequest inventoryRequest) {
 		logger.info("invokeInventoryRevertService:: InventoryRequest: ", inventoryRequest);
-		return getRestTemplate().postForObject(inventoryRevertServiceUrl, inventoryRequest, ClientResponse.class);
+		ClientResponse clientResponse = new ClientResponse();
+		try {
+			clientResponse = getRestTemplate().postForObject(inventoryRevertServiceUrl, inventoryRequest,
+					ClientResponse.class);
+		} catch (Exception e) {
+			logger.error("Error while calling inventory rollback service: ", e.getCause());
+			clientResponse.setCode("500");
+			clientResponse.setMessage("Error while calling inventory rollback service.");
+		}
+		return clientResponse;
 	}
-	
+
 	@Override
 	public ClientResponse invokePaymentService(PaymentRequest paymentRequest) {
 		logger.info("invokePaymmentService:: PaymentRequest: ", paymentRequest);
-		return getRestTemplate().postForObject(paymentUrl, paymentRequest, ClientResponse.class);
+		ClientResponse clientResponse = new ClientResponse();
+		try {
+			clientResponse = getRestTemplate().postForObject(paymentUrl, paymentRequest, ClientResponse.class);
+		} catch (Exception e) {
+			logger.error("Error while calling payment update service: ", e.getCause());
+			clientResponse.setCode("500");
+			clientResponse.setMessage("Error while calling payment update service.");
+		}
+		return clientResponse;
 	}
 
 	@Override
 	public ClientResponse invokePaymentRevertService(PaymentRequest paymentRequest) {
-		logger.info("invokePaymmentService:: PaymentRequest: ", paymentRequest);
-		return getRestTemplate().postForObject(paymentRevertServiceUrl, paymentRequest, ClientResponse.class);
+		logger.info("invokePaymentRevertService:: PaymentRequest: ", paymentRequest);
+		ClientResponse clientResponse = new ClientResponse();
+		try {
+			clientResponse = getRestTemplate().postForObject(paymentRevertServiceUrl, paymentRequest,
+					ClientResponse.class);
+		} catch (Exception e) {
+			logger.error("Error while calling payment rollback service: ", e.getCause());
+			clientResponse.setCode("500");
+			clientResponse.setMessage("Error while calling payment rollback service.");
+		}
+		return clientResponse;
 	}
 
 }

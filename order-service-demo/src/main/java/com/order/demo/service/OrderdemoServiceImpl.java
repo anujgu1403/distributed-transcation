@@ -39,7 +39,7 @@ public class OrderdemoServiceImpl implements OrderdemoService {
 			// create new order for guest user
 			order.setProductId(orderRequest.getProductId());
 			order.setQuantity(orderRequest.getQuantity());
-			order.setStatus("P");
+			order.setStatus(OrderServiceConstants.PENDING_ORDER);
 			order.setTotalPrice(orderRequest.getTotalPrice());
 			order = ordersRepository.save(order);
 			
