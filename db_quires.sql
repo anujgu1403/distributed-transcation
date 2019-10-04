@@ -61,8 +61,10 @@ select * from GCPDB.ordersdemo;
 
 select * from GCPDB.inventory;
 
-select * from paymentdetails;
+select * from GCPDB.paymentdetails;
+delete from GCPDB.paymentdetails;
 
 insert into inventory values(1, 'RH_CHK_BL', 10);
+update GCPDB.inventory set quantity=10 where id = 1;
 
 ALTER TABLE GCPDB.inventory drop price;
