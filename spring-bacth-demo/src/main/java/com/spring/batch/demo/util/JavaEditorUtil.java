@@ -18,7 +18,7 @@ public class JavaEditorUtil {
 	public static String compileAndRunProgram(String programString) {
 		System.out.println("Start JavaEditorUtil: compileAndRunProgram :: ");
 
-		String outputResult = null;
+		String outputResult = "";
 		if (null != programString && !programString.isEmpty()) {
 			outputResult = getProgramOutputResult(programString);
 			System.out.println("Start JavaEditorUtil: compileAndRunProgram :: outputResult: " + outputResult);
@@ -31,7 +31,7 @@ public class JavaEditorUtil {
 	public static String getProgramOutputResult(String programString) {
 		System.out.println("Start JavaEditorUtil: getCompilationTask :: ");
 		URI sourceUri = null;
-		String outputResult = null;
+		String outputResult = "";
 		CompilationTask compilationTask = null;
 		if (null != programString && !programString.isEmpty()) {
 			System.setProperty("java.home", "C:\\Program Files\\Java\\jdk1.8.0_191");
@@ -72,7 +72,7 @@ public class JavaEditorUtil {
 	public static String getInputClassName(String programString) {
 		System.out.println("Start JavaEditorUtil: getInputClassName :: programString: " + programString);
 
-		String inputClassName = null;
+		String inputClassName = "";
 		if (null != programString && !programString.isEmpty()) {
 			int indexOfClasskeyword = programString.indexOf("public class");
 			int indexOfFirstCurly = programString.indexOf('{');
@@ -84,7 +84,7 @@ public class JavaEditorUtil {
 
 	static class StringJavaFileObject extends SimpleJavaFileObject {
 
-		private String content = null;
+		private String content = "";
 
 		protected StringJavaFileObject(URI uri, Kind kind) {
 			super(uri, kind);
