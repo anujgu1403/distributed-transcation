@@ -16,7 +16,7 @@ public class JavaEditorController {
 	private JavaEditorService javaEditorService;
 
 	@PostMapping("/editor")
-	public ResponseEntity<?> compileAndRunProgram(@RequestBody String inputProgramString) {
+	public ResponseEntity<?> compileAndRunProgram(@RequestBody String inputProgramString) throws Exception {
 		System.out.println(
 				"Start JavaEditorController: compileAndRunProgram:: inputProgramString: " + inputProgramString);
 		ResponseEntity<String> responseEntity = null;

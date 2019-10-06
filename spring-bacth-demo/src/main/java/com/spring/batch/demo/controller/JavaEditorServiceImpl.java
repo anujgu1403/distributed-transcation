@@ -7,7 +7,7 @@ import com.spring.batch.demo.util.JavaEditorUtil;
 public class JavaEditorServiceImpl implements JavaEditorService{
 
 	@Override
-	public String compileAndRunProgram(String inputProgramString) {
+	public String compileAndRunProgram(String inputProgramString) throws Exception {
 		System.out.println("Start JavaEditorServiceImpl: compileAndRunProgram:: ");
 		String programOutput = "";
 		if(null !=inputProgramString && !inputProgramString.isEmpty()) {

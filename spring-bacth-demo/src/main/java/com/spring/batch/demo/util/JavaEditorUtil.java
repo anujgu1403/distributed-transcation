@@ -1,6 +1,9 @@
 package com.spring.batch.demo.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +18,7 @@ import javax.tools.ToolProvider;
 
 public class JavaEditorUtil {
 
-	public static String compileAndRunProgram(String programString) {
+	public static String compileAndRunProgram(String programString) throws Exception {
 		System.out.println("Start JavaEditorUtil: compileAndRunProgram :: ");
 
 		String outputResult = "";
@@ -28,7 +31,7 @@ public class JavaEditorUtil {
 		return outputResult;
 	}
 
-	public static String getProgramOutputResult(String programString) {
+	public static String getProgramOutputResult(String programString) throws Exception {
 		System.out.println("Start JavaEditorUtil: getCompilationTask :: ");
 		URI sourceUri = null;
 		String outputResult = "";
@@ -63,6 +66,9 @@ public class JavaEditorUtil {
 					// read error details from the diagnostic object
 					outputResult = outputResult + diagnostic.getMessage(null);
 				}
+			}else {
+				String command = "java -cp src ./spring-bacth-demo/"+getInputClassName(programString);
+				runProcess(command);
 			}
 
 		}
@@ -80,6 +86,23 @@ public class JavaEditorUtil {
 			System.out.println("Start JavaEditorUtil: getInputClassName :: inputClassName: " + inputClassName);
 		}
 		return inputClassName.trim();
+	}
+
+	private static void printLines(String command, InputStream inputStream) throws Exception {
+		String line = null;
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+		while ((line = bufferedReader.readLine()) != null) {
+			System.out.println(command + " " + line);
+		}
+	}
+
+	private static void runProcess(String command) throws Exception {
+		System.out.println("Start JavaEditorUtil: runProcess :: command: " + command);
+		Process pro = Runtime.getRuntime().exec(command);
+		printLines(command + " stdout:", pro.getInputStream());
+		printLines(command + " stderr:", pro.getErrorStream());
+		pro.waitFor();
+		System.out.println(command + " exitValue() " + pro.exitValue());
 	}
 
 	static class StringJavaFileObject extends SimpleJavaFileObject {
