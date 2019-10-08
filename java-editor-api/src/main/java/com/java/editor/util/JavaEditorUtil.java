@@ -1,4 +1,4 @@
-package com.spring.batch.demo.util;
+package com.java.editor.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

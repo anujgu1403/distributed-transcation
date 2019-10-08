@@ -1,4 +1,4 @@
-package com.spring.batch.demo.controller;
+package com.java.editor.service;
 
 public interface JavaEditorService {
 

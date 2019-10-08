@@ -1,7 +1,7 @@
-package com.spring.batch.demo.controller;
+package com.java.editor.service;
 
 import org.springframework.stereotype.Service;
-import com.spring.batch.demo.util.JavaEditorUtil;
+import com.java.editor.util.JavaEditorUtil;
 
 @Service
 public class JavaEditorServiceImpl implements JavaEditorService{
