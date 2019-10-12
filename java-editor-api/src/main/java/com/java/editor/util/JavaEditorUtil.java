@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -66,9 +70,10 @@ public class JavaEditorUtil {
 					// read error details from the diagnostic object
 					outputResult = outputResult + diagnostic.getMessage(null);
 				}
-			}else {
-				String command = "java -cp src ./spring-bacth-demo/"+getInputClassName(programString);
-				runProcess(command);
+			} else {
+				String command = "java -cp . " + getInputClassName(programString);
+				outputResult = runProcess(command);
+				
 			}
 
 		}
@@ -96,13 +101,20 @@ public class JavaEditorUtil {
 		}
 	}
 
-	private static void runProcess(String command) throws Exception {
+	private static String runProcess(String command) throws Exception {
 		System.out.println("Start JavaEditorUtil: runProcess :: command: " + command);
-		Process pro = Runtime.getRuntime().exec(command);
-		printLines(command + " stdout:", pro.getInputStream());
-		printLines(command + " stderr:", pro.getErrorStream());
-		pro.waitFor();
-		System.out.println(command + " exitValue() " + pro.exitValue());
+		String outputResult = "";
+		Process process = Runtime.getRuntime().exec(command);
+		//printLines(command + " stdout:", process.getInputStream());
+		//printLines(command + " stderr:", process.getErrorStream());
+		if (process.getInputStream() != null) {
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line = "";
+			while ((line = bufferedReader.readLine()) != null) {
+				outputResult = outputResult +line;
+			}
+		}
+		return outputResult;
 	}
 
 	static class StringJavaFileObject extends SimpleJavaFileObject {
