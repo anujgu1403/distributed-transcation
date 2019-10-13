@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -32,12 +34,14 @@ public class JavaEditorUtil {
 	 * 
 	 * @param String
 	 * @param String
-	 * @return String
+	 * @return Map<String, String>
 	 *
 	 */
-	public static String getProgramOutputResult(String programString, String systemJdkPath) throws Exception {
+	public static Map<String, String> getProgramOutputResult(String programString, String systemJdkPath)
+			throws Exception {
 		logger.info("Start JavaEditorUtil: getCompilationTask :: systemJdkPath: " + systemJdkPath);
 
+		Map<String, String> resultMap = new HashMap<String, String>();
 		URI sourceUri = null;
 		String outputResult = "";
 		CompilationTask compilationTask = null;
@@ -51,40 +55,56 @@ public class JavaEditorUtil {
 			StandardJavaFileManager javaFileManager = javaCompiler.getStandardFileManager(diagnosticsCollector, null,
 					null);
 
-			// To create java source file
-			sourceUri = URI.create(getInputClassName(programString) + JavaFileObject.Kind.SOURCE.extension);
-			JavaEditorUtil.StringJavaFileObject fileObject = new JavaEditorUtil.StringJavaFileObject(sourceUri,
-					JavaFileObject.Kind.SOURCE);
-			fileObject.setContent(programString);
+			// To get the class/interface name
+			Map<String, String> classNameMap = getInputClassName(programString);
+			if (classNameMap.containsKey(JavaEditorConstants.CLASS_NAME)) {
+				if (classNameMap.get(JavaEditorConstants.CLASS_NAME) != null
+						&& !classNameMap.get(JavaEditorConstants.CLASS_NAME).isEmpty()) {
 
-			// put javaFileObject into list
-			Iterable<? extends JavaFileObject> fileObjects = Arrays.asList(fileObject);
+					// To create java source file
+					sourceUri = URI.create(
+							classNameMap.get(JavaEditorConstants.CLASS_NAME) + JavaFileObject.Kind.SOURCE.extension);
+					JavaEditorUtil.StringJavaFileObject fileObject = new JavaEditorUtil.StringJavaFileObject(sourceUri,
+							JavaFileObject.Kind.SOURCE);
+					fileObject.setContent(programString);
 
-			// put them into task
-			compilationTask = javaCompiler.getTask(null, javaFileManager, diagnosticsCollector, null, null,
-					fileObjects);
+					// put javaFileObject into list
+					Iterable<? extends JavaFileObject> fileObjects = Arrays.asList(fileObject);
 
-			boolean result = compilationTask.call();
-			if (result) {
+					// put them into task
+					compilationTask = javaCompiler.getTask(null, javaFileManager, diagnosticsCollector, null, null,
+							fileObjects);
 
-				logger.info("JavaEditorUtil: compileAndRunProgram :: compiled successfully!");
+					boolean result = compilationTask.call();
+					if (result) {
 
-				// run the program's .class file and send output result as string
-				String command = JavaEditorConstants.JAVA_RUN_CMD + getInputClassName(programString);
-				outputResult = runProcess(command);
+						logger.info("JavaEditorUtil: compileAndRunProgram :: compiled successfully!");
 
-			} else {
+						// run the program's .class file and send output result as string
+						String command = JavaEditorConstants.JAVA_RUN_CMD + classNameMap.get(JavaEditorConstants.CLASS_NAME);
+						outputResult = runProcess(command);
+						resultMap.put(JavaEditorConstants.EXECUTION_OUTPUT, outputResult);
+						
+						// To check if p s v m is exists in program
+						if(classNameMap.containsKey(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN)) {
+							resultMap.put(JavaEditorConstants.EXECUTION_OUTPUT, classNameMap.get(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN));
+						}
 
-				List<Diagnostic<? extends JavaFileObject>> diagnostics = diagnosticsCollector.getDiagnostics();
-				for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics) {
+					} else {
 
-					// read error details from the diagnostic object and return as string output
-					outputResult = outputResult + diagnostic.getMessage(null);
+						List<Diagnostic<? extends JavaFileObject>> diagnostics = diagnosticsCollector.getDiagnostics();
+						for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics) {
+
+							// read error details from the diagnostic object and return as string output
+							outputResult = outputResult + diagnostic.getMessage(null);
+						}
+						resultMap.put(JavaEditorConstants.COMPILATION_FAILED, outputResult);
+					}
 				}
-
 			}
+
 		}
-		return outputResult;
+		return resultMap;
 	}
 
 	/**
@@ -93,17 +113,55 @@ public class JavaEditorUtil {
 	 *
 	 *         This method is to get class name which is having main method
 	 */
-	public static String getInputClassName(String programString) {
+	public static Map<String, String> getInputClassName(String programString) {
 		logger.info("Start JavaEditorUtil: getInputClassName :: programString: " + programString);
 
 		String inputClassName = "";
+		Map<String, String> resultMap = new HashMap<String, String>();
+		int indexOfClasskeyword = 0;
+		int indexOfFirstCurly = 0;
+
 		if (null != programString && !programString.isEmpty()) {
-			int indexOfClasskeyword = programString.indexOf(JavaEditorConstants.PUBLIC_CLASS);
-			int indexOfFirstCurly = programString.indexOf(JavaEditorConstants.FIRST_CURLY_BRACE);
-			inputClassName = programString.substring(indexOfClasskeyword + JavaEditorConstants.CLASS_NAME_START_INDEX, indexOfFirstCurly);
-			logger.info("JavaEditorUtil: getInputClassName :: inputClassName: " + inputClassName);
+
+			// To check if program is having public class
+			indexOfClasskeyword = programString.indexOf(JavaEditorConstants.PUBLIC_CLASS);
+
+			if (indexOfClasskeyword >= 0) {
+				// look if program is having p s v m
+				if (programString.indexOf(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN) <= 0) {
+					resultMap.put(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN, JavaEditorConstants.PSVM_NOT_DEFINDED);
+				}
+				indexOfFirstCurly = programString.indexOf(JavaEditorConstants.FIRST_CURLY_BRACE);
+				inputClassName = programString.substring(
+						indexOfClasskeyword + JavaEditorConstants.PUBLIC_CLASS_NAME_START_INDEX, indexOfFirstCurly);
+				resultMap.put(JavaEditorConstants.CLASS_NAME, inputClassName.trim());
+
+			} else {
+
+				// To check non public class
+				if ((indexOfClasskeyword = programString.indexOf(JavaEditorConstants.CLASS)) >= 0) {
+					indexOfFirstCurly = programString.indexOf(JavaEditorConstants.FIRST_CURLY_BRACE);
+					inputClassName = programString.substring(
+							indexOfClasskeyword + JavaEditorConstants.CLASS_NAME_START_INDEX, indexOfFirstCurly);
+					resultMap.put(JavaEditorConstants.CLASS_NAME, inputClassName.trim());
+					resultMap.put(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN, JavaEditorConstants.PSVM_NOT_DEFINDED);
+
+					// To check the interface name
+				} else if ((indexOfClasskeyword = programString.indexOf(JavaEditorConstants.INTERFACE)) >= 0) {
+					indexOfFirstCurly = programString.indexOf(JavaEditorConstants.FIRST_CURLY_BRACE);
+					inputClassName = programString.substring(
+							indexOfClasskeyword + JavaEditorConstants.INTERFACE_NAME_START_INDEX, indexOfFirstCurly);
+					resultMap.put(JavaEditorConstants.CLASS_NAME, inputClassName.trim());
+					resultMap.put(JavaEditorConstants.PUBLIC_STATIC_VOID_MAIN, JavaEditorConstants.PSVM_NOT_DEFINDED);
+
+				} else {
+					resultMap.put(JavaEditorConstants.NO_CLASS_NAME, JavaEditorConstants.NO_CLASS_NAME);
+				}
+			}
+
+			logger.info("JavaEditorUtil: getInputClassName :: inputClassNameMap: " + resultMap);
 		}
-		return inputClassName.trim();
+		return resultMap;
 	}
 
 	/**

@@ -1,5 +1,8 @@
 package com.java.editor.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +22,7 @@ public class JavaEditorServiceImpl implements JavaEditorService {
 
 	/**
 	 * @param String
-	 * @return String
+	 * @return Map<String, String>
 	 * 
 	 *         compileAndRunProgram method is to call util class method to compile
 	 *         and run the program
@@ -30,14 +33,14 @@ public class JavaEditorServiceImpl implements JavaEditorService {
 	private String systemJdkPath;
 	
 	@Override
-	public String compileAndRunProgram(String inputProgramString) throws Exception {
+	public Map<String, String> compileAndRunProgram(String inputProgramString) throws Exception {
 		logger.info("Start JavaEditorServiceImpl: compileAndRunProgram:: ");
-		String programOutput = "";
+		Map<String, String> resultMap = new HashMap<String, String>();
 		if (null != inputProgramString && !inputProgramString.isEmpty()) {
-			programOutput = JavaEditorUtil.getProgramOutputResult(inputProgramString, systemJdkPath);
-			logger.info("Start JavaEditorServiceImpl: compileAndRunProgram:: programOutput: " + programOutput);
+			resultMap = JavaEditorUtil.getProgramOutputResult(inputProgramString, systemJdkPath);
+			logger.info("Start JavaEditorServiceImpl: compileAndRunProgram:: programOutput: " + resultMap.values());
 		}
-		return programOutput;
+		return resultMap;
 	}
 
 }

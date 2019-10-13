@@ -1,5 +1,7 @@
 package com.java.editor.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.java.editor.service.JavaEditorService;
+import com.java.editor.util.JavaEditorConstants;
 
 /**
  * @author anuj kumar
@@ -25,7 +28,7 @@ public class JavaEditorController {
 
 	@Autowired
 	private JavaEditorService javaEditorService;
-
+	
 	/**
 	 * compileAndRunProgram method is to invoke service level method to execute
 	 * business logic
@@ -35,16 +38,31 @@ public class JavaEditorController {
 	 *
 	 */
 	@PostMapping("/editor")
-	public ResponseEntity<?> compileAndRunProgram(@RequestBody String inputProgramString) throws Exception {
+	public ResponseEntity<?> compileAndRunProgram(@RequestBody String inputProgramString) {
 		logger.info("Start JavaEditorController: compileAndRunProgram:: inputProgramString: " + inputProgramString);
-		ResponseEntity<String> responseEntity = null;
-		String programOutput = javaEditorService.compileAndRunProgram(inputProgramString);
-
-		if (!programOutput.isEmpty()) {
-			responseEntity = new ResponseEntity<String>(programOutput, HttpStatus.OK);
+		ResponseEntity<Map<String, String>> responseEntity = null;
+		Map<String, String> resultMap = new HashMap<String, String>();
+       
+		if (null == inputProgramString || inputProgramString.isEmpty()) {
+			resultMap.put(JavaEditorConstants.INVALID_REQUEST, JavaEditorConstants.INVALID_REQUEST_MESSAGE);
+			responseEntity = new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.BAD_REQUEST);
 		} else {
-			responseEntity = new ResponseEntity<String>("Service is unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
+			try {
+
+				resultMap = javaEditorService.compileAndRunProgram(inputProgramString);
+				if (resultMap != null) {
+					responseEntity = new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.OK);
+				}
+
+			} catch (Exception e) {
+				logger.info(
+						"JavaEditorController: compileAndRunProgram:: Error occured while compiling and running the program:",
+						e.getCause());
+				resultMap.put(JavaEditorConstants.EXECPTION, JavaEditorConstants.EXECPTION_RESPONSE_MESSAGE);
+				responseEntity = new ResponseEntity<Map<String, String>>(resultMap, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
+
 		return responseEntity;
 	}
 }

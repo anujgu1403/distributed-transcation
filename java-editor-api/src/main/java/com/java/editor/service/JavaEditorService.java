@@ -1,5 +1,6 @@
 package com.java.editor.service;
 
+import java.util.Map;
 
 /**
  * @author anuj kumar
@@ -9,5 +10,5 @@ package com.java.editor.service;
  */
 public interface JavaEditorService {
 
-	public String compileAndRunProgram(String inputProgramString) throws Exception;
+	public Map<String, String> compileAndRunProgram(String inputProgramString) throws Exception;
 }
