@@ -110,7 +110,7 @@ public class OrderdemoServiceImpl implements OrderdemoService {
 		logger.info("Start deleteOrder method: ", OrderdemoServiceImpl.class.getName());
 		Response resp = new Response();
 		try {
-			// create new order for guest user					
+			// delete the order by Id					
 			if(orderId!=0) {
 				ordersRepository.deleteById(orderId);
 				resp.setMessage(OrderServiceConstants.ORDER_TRANSACTION_DELETED);

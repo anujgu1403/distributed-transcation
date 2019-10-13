@@ -46,18 +46,19 @@ public class CreateOrderSaga {
 				// publish event for inventory update
 				applicationEventPublisher.publishEvent(new CustomEvent(this, resp.getOrderId(), resp.getProductId(),
 						resp.getQuantity(), resp.getTotalPrice(), OrderServiceConstants.ORDER_CREATED_EVENT, null));
-			} 
+			}
 		} else {
 			// Send the final response for transaction completion.
-			if (null != customEvent && customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CONFIMED)) {
+			if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CONFIMED)) {
 				if (null != customEvent.getResponse()) {
 					resp = customEvent.getResponse();
+					resp.setMessage(OrderServiceConstants.ORDER_CONFIMED);
+					return resp;
 				}
-			} else if (null != customEvent
-					&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_TRANSACTION_REVERTED)) {
-				if (null != customEvent.getResponse()) {
-					resp = customEvent.getResponse();
-				}
+			} else if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_TRANSACTION_REVERTED)) {
+				resp = new Response();
+				resp.setMessage(OrderServiceConstants.ORDER_TRANSACTION_REVERTED);
+				return resp;
 			}
 		}
 		logger.debug("Response: " + resp);
@@ -99,7 +100,7 @@ public class CreateOrderSaga {
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
 						OrderServiceConstants.PAYMENT_UPDATED, null));
 			} else {
-				// raise event to rollback order tansaction
+				// raise event to rollback order transaction
 				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
 						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
 						OrderServiceConstants.PAYMENT_UPDATION_FAILED, null));
@@ -136,15 +137,28 @@ public class CreateOrderSaga {
 	public void onTransactionFailed(CustomEvent customEvent) {
 		if (null != customEvent
 				&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.INVENTORY_UPDATION_FAILED)) {
+
+			// Delete the pending order created in recently
+			Response resp = orderdemoService.deleteOrder(customEvent.getOrderId());
+			if (!resp.getMessage().isEmpty()) {
+				// raise event to return response for successful transaction rolledback
+				applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
+						customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
+						OrderServiceConstants.ORDER_TRANSACTION_REVERTED, null));
+			}
+
+		} else if (null != customEvent
+				&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.PAYMENT_UPDATION_FAILED)) {
 			// Revert the inventory which was updated earlier
 			InventoryRequest inventoryRequest = new InventoryRequest();
 			inventoryRequest.setProductId(customEvent.getProductId());
 			inventoryRequest.setQuantity(customEvent.getQuantity());
 			ClientResponse clientResponse = sagaClient.invokeInventoryRevertService(inventoryRequest);
 
-			if (null == clientResponse.getCode() && clientResponse.getCode().equals("201")) {
+			if (null != clientResponse.getCode() && clientResponse.getCode().equals("201")) {
 				// Inventory has been reverted successfully and delete the order
 				Response resp = orderdemoService.deleteOrder(customEvent.getOrderId());
+
 				if (!resp.getMessage().isEmpty()) {
 					// raise event to return response for successful transaction rolledback
 					applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
@@ -153,35 +167,7 @@ public class CreateOrderSaga {
 				}
 
 			}
-		} else if (null != customEvent
-				&& customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.PAYMENT_UPDATION_FAILED)) {
-			// Revert the payment transaction which was updated earlier
 
-			PaymentRequest paymentRequest = new PaymentRequest();
-			paymentRequest.setOrderId(customEvent.getOrderId());
-			paymentRequest.setAmount(customEvent.getAmount());
-			ClientResponse clientResponse = sagaClient.invokePaymentRevertService(paymentRequest);
-
-			if (clientResponse.getCode().equals("201")) {
-				// Revert the inventory which was updated earlier
-				InventoryRequest inventoryRequest = new InventoryRequest();
-				inventoryRequest.setProductId(customEvent.getProductId());
-				inventoryRequest.setQuantity(customEvent.getQuantity());
-				clientResponse = sagaClient.invokeInventoryRevertService(inventoryRequest);
-
-				if (null == clientResponse.getCode() && clientResponse.getCode().equals("201")) {
-					// Inventory has been reverted successfully and delete the order
-					Response resp = orderdemoService.deleteOrder(customEvent.getOrderId());
-					if (!resp.getMessage().isEmpty()) {
-						// raise event to return response for successful transaction rolledback
-						applicationEventPublisher.publishEvent(new CustomEvent(this, customEvent.getOrderId(),
-								customEvent.getProductId(), customEvent.getQuantity(), customEvent.getAmount(),
-								OrderServiceConstants.ORDER_TRANSACTION_REVERTED, null));
-					}
-
-				}
-
-			}
 		}
 	}
 

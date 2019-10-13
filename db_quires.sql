@@ -58,11 +58,12 @@ CREATE TABLE IF NOT EXISTS GCPDB.ORDERSDEMO(
 ALTER TABLE GCPDB.ordersdemo add quantity int(3);
 
 select * from GCPDB.ordersdemo;
+delete from GCPDB.ordersdemo;
 
 select * from GCPDB.inventory;
 
 select * from GCPDB.paymentdetails;
-delete from GCPDB.paymentdetails;
+delete from GCPDB.paymentdetails where id is not null;
 
 insert into inventory values(1, 'RH_CHK_BL', 10);
 update GCPDB.inventory set quantity=10 where id = 1;
