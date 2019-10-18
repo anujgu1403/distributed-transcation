@@ -73,15 +73,14 @@ public class OrderdemoServiceImpl implements OrderdemoService {
 		Response resp = new Response();
 		Ordersdemo order = new Ordersdemo();
 		try {
-			// create new order for guest user
-			order.setId(orderRequest.getOrderId());
-			order.setProductId(orderRequest.getProductId());
-			order.setQuantity(orderRequest.getQuantity());
-			order.setStatus("S");
-			order.setTotalPrice(orderRequest.getTotalPrice());
-			order = ordersRepository.save(order);
+			// By the order in table and update status as confirmed
+			order = ordersRepository.findOrderByOrdersId(orderRequest.getOrderId());
 			
 			if(order.getId()!=0) {
+				order.setStatus("S");
+				order = ordersRepository.save(order);
+				
+				// return the response after update
 				resp.setOrderId(order.getId());
 				resp.setProductId(order.getProductId());
 				resp.setTotalPrice(order.getTotalPrice());

@@ -47,20 +47,23 @@ public class CreateOrderSaga {
 				applicationEventPublisher.publishEvent(new CustomEvent(this, resp.getOrderId(), resp.getProductId(),
 						resp.getQuantity(), resp.getTotalPrice(), OrderServiceConstants.ORDER_CREATED_EVENT, null));
 			}
-		} else {
-			// Send the final response for transaction completion.
-			if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CONFIMED)) {
-				if (null != customEvent.getResponse()) {
-					resp = customEvent.getResponse();
-					resp.setMessage(OrderServiceConstants.ORDER_CONFIMED);
-					return resp;
-				}
-			} else if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_TRANSACTION_REVERTED)) {
-				resp = new Response();
-				resp.setMessage(OrderServiceConstants.ORDER_TRANSACTION_REVERTED);
+		}
+
+		// else {
+		// Send the final response for transaction completion.
+		if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_CONFIMED)) {
+			if (null != customEvent.getResponse()) {
+				resp = customEvent.getResponse();
+				resp.setMessage(OrderServiceConstants.ORDER_CONFIMED);
 				return resp;
 			}
 		}
+		if (customEvent.getEvent().equalsIgnoreCase(OrderServiceConstants.ORDER_TRANSACTION_REVERTED)) {
+			resp = new Response();
+			resp.setMessage(OrderServiceConstants.ORDER_TRANSACTION_REVERTED);
+			return resp;
+		}
+		// }
 		logger.debug("Response: " + resp);
 		return resp;
 	}
