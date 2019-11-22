@@ -1,5 +1,6 @@
 package com.inventory.inventoryProject.controller;
 
+import com.inventory.inventoryProject.domain.Inventory;
 import com.inventory.inventoryProject.model.InventoryRequest;
 import com.inventory.inventoryProject.model.Response;
 import com.inventory.inventoryProject.service.InventoryService;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,4 +55,13 @@ public class InventoryController {
 		}
 		return responseEntity;
 	}
+	
+	@GetMapping("/{productId}")
+	public Inventory getInventoryByProductId(@PathVariable("productId") String productId) {
+		System.out.println("Seaching product by productId: "+productId); 
+		Inventory inventory = inventoryService.findInventoryByProductId(productId);
+		return inventoryService.findInventoryByProductId(productId);
+	}
+	
 }
+

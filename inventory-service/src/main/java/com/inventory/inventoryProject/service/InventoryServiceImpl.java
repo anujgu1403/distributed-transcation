@@ -7,6 +7,9 @@ import com.inventory.inventoryProject.repository.InventoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -87,4 +90,20 @@ public class InventoryServiceImpl implements InventoryService {
 		return response;
 	}
 	
+	@Cacheable("inventory")
+	public Inventory findInventoryByProductId(String productId) {
+		try {
+			System.out.println("Making thread sleep for some time.");
+			Thread.sleep(1000);
+			clearAllCacheEntries();
+		}catch(InterruptedException ex) {
+			ex.printStackTrace();
+		}
+		return inventoryRepository.findQuantityByProductId(productId);
+	}
+	
+	@CacheEvict(value="inventory", allEntries = true)
+	public void clearAllCacheEntries() {
+		System.out.println("Cleared all cache entries.");
+	}
 }
